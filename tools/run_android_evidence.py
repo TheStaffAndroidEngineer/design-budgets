@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Execute explicit correctness classes against exact retained debug artifacts."""
+import os
 from pathlib import Path
 import argparse,hashlib,json,subprocess,tarfile,io,re
 p=argparse.ArgumentParser();p.add_argument('--out',type=Path,required=True);p.add_argument('--app',type=Path,required=True);p.add_argument('--test',type=Path,required=True);p.add_argument('--serial',default='emulator-5554');p.add_argument('--classes',default='staff.android.design.DeliveryFlowTest,staff.android.design.DeliveryTransportTest');a=p.parse_args();a.out.mkdir(parents=True,exist_ok=False)
-adb=str(Path.home()/'Library/Android/sdk/platform-tools/adb');report={'status':'STARTING','commands':[],'apks':{},'scope':'Actual delivery/optional HTTP and native state on recorded emulator. Controlled delays test ordering/admission, not representative latency or fleet SLO attainment.'}
+adb=str(Path(os.environ.get('ANDROID_HOME', str(Path.home() / 'Library/Android/sdk'))) / 'platform-tools/adb');report={'status':'STARTING','commands':[],'apks':{},'scope':'Actual delivery/optional HTTP and native state on recorded emulator. Controlled delays test ordering/admission, not representative latency or fleet SLO attainment.'}
 def run(*args):
  proc=subprocess.run([adb,'-s',a.serial,*map(str,args)],capture_output=True,timeout=300);report['commands'].append({'args':list(map(str,args)),'returncode':proc.returncode,'stderr':proc.stderr.decode(errors='replace')});assert proc.returncode==0,proc.stderr.decode(errors='replace');return proc.stdout
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
